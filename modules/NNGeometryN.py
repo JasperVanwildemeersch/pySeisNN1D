@@ -318,12 +318,12 @@ class Layer:
         self.intersectionType = self.classifyIntersection(cubeTop, cubeBot)
         self.nBlocks = self.getNBlocks(self.intersectionType)
 
-    def generateBlocks(self, xMin, xMax, yMin, yMax, zC, zS,domXYBounds):
+    def generateBlocks(self, xMin, xMax, yMin, yMax, zC, ax, ay, az, domXYBounds):
         # xMin, xMax are the minimum and the maximum extent of the simulation domain in X-direction
         # yMin, yMax are the minimum and the maximum extent of the simulation domain in Y-direction
         # zC is the depth of the center of the cavity
         # zS is half the side length of the inner cube
-        xC = 0.0; yC = 0.0
+        xC = 0.0; yC = 0.0# Create argument for this, adjust functions
         self.blocks = []  # Clear previous
 
         # Example: add the cube part (always present if intersects)
@@ -339,9 +339,9 @@ class Layer:
             self.blocks.append(block1);
 
         if self.intersectionType == 'contains':
-            xL, xR = xC - zS, xC + zS
-            yB, yT = yC - zS, yC + zS
-            zL, zU = zC - zS, zC + zS
+            xL, xR = xC - ax, xC + ax
+            yB, yT = yC - ay, yC + ay
+            zL, zU = zC - az, zC + az
 
             xIntervals = [(xMin, xL), (xL, xR), (xR, xMax)]
             yIntervals = [(yMin, yB), (yB, yT), (yT, yMax)]
@@ -377,12 +377,12 @@ class Layer:
 
         if self.intersectionType == 'cut_top':
             # cavity bounds
-            cubeTop = zC - zS
-            cubeBot = zC + zS   # not directly used here
+            cubeTop = zC - az
+            cubeBot = zC + az   # not directly used here
 
             # symmetric x–y tiling
-            xL, xR = xC-zS, xC+zS
-            yB, yT = yC-zS, yC+zS
+            xL, xR = xC-ax, xC+ax
+            yB, yT = yC-ay, yC+ay
 
             xIntervals = [(xMin, xL), (xL, xR), (xR, xMax)]
             yIntervals = [(yMin, yB), (yB, yT), (yT, yMax)]
@@ -424,12 +424,12 @@ class Layer:
 
         if self.intersectionType == "cut_bottom":
             # cavity bounds
-            cubeTop = zC - zS
-            cubeBot = zC + zS
+            cubeTop = zC - az
+            cubeBot = zC + az
 
             # symmetric x–y tiling
-            xL, xR = -zS, zS
-            yB, yT = -zS, zS
+            xL, xR = -ax, ax
+            yB, yT = -ay, ay
 
             xIntervals = [(xMin, xL), (xL, xR), (xR, xMax)]
             yIntervals = [(yMin, yB), (yB, yT), (yT, yMax)]
@@ -469,12 +469,12 @@ class Layer:
                         self.blocks.append(block)
 
         if self.intersectionType == 'cut_middle':
-            cubeTop = zC - zS
-            cubeBot = zC + zS
+            cubeTop = zC - az
+            cubeBot = zC + az
 
             # symmetric x–y tiling (centered cavity at xC=yC=0; generalize if needed)
-            xL, xR = xC-zS, xC+zS
-            yB, yT = yC-zS, yC + zS
+            xL, xR = xC-ax, xC+ax #change this to x and y values
+            yB, yT = yC-ay, yC + ay
 
             xIntervals = [(xMin, xL), (xL, xR), (xR, xMax)]
             yIntervals = [(yMin, yB), (yB, yT), (yT, yMax)]
