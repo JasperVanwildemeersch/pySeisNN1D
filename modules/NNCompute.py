@@ -9,7 +9,6 @@ from scipy.io import savemat
 from scipy.io import loadmat
 import scipy.constants as const
 from pysurf96 import surf96
-from modules import NNGeometry
 from modules import simDisp
 from modules import plotUtils
 
@@ -34,7 +33,7 @@ def main():
     zMin = 0.0; zMax = 4000.0; # maximum and minimum of the simulation domain in Z-direction (depth)
     domXYBounds = (xMin,xMax,yMin,yMax);
     cubeC = 250.0; rCavity = 20.0;
-    cubeS = 2*rCavity;
+    cubeS = 2*rCavity
     cubeTop = cubeC-cubeS; cubeBot = cubeC+cubeS;
     
     G = const.G
@@ -579,7 +578,7 @@ def computeVertSurfNN(disp_fxn, rVec, zCav, n_hat, dS):
 
     return I_surf
     
-def runVolNNComputeBlock(block, gridSize, freqOut, cubeC, rCavity, xSrc, ySrc, azSrc, srcMeta,
+def runVolNNComputeBlock(block, gridSize, freqOut, cubeC, rCavity, cavity_length, cavity_width, cavity_height, cavity_type, xSrc, ySrc, azSrc, srcMeta,
                          idxFreq, fMin, fMax, outDispPath, splitAll, xMaxGF, fInpPath, components, vR, 
                          useSimDisp=False, ifRay = 0, ifBody = 0, nCPUDisp=4, nCPUNN=4, nChunk=20000,
                          metaBody=None, computeStrategy = 'threading_shared', saveHV = False):
@@ -661,9 +660,45 @@ def runVolNNComputeBlock(block, gridSize, freqOut, cubeC, rCavity, xSrc, ySrc, a
         # ============================================================
         # Apply only to the block containing the cavity (uniform grid)
         if block.spaceType == 'uniform':
+
+            #Aanpassing 1
+            #weg:
+
             # compute distance from cavity center
-            rDist = np.sqrt(gridX_flat**2 + gridY_flat**2 + (zNow - zCav)**2)
-            mask = rDist >= rCavity  # keep only points OUTSIDE cavity
+            #rDist = np.sqrt(gridX_flat**2 + gridY_flat**2 + (zNow - zCav)**2)
+            #mask = rDist >= rCavity  # keep only points OUTSIDE cavity
+
+            #vervangen door:
+            cavityType = cavity_type
+
+            if cavityType == "sphere":
+                rDist = np.sqrt(gridX_flat**2 + gridY_flat**2 + (zNow - zCav)**2)
+                mask = rDist >= rCavity
+
+            elif cavityType == "cube":
+                a = rCavity
+                mask = ~(
+                    (np.abs(gridX_flat) <= a) &
+                    (np.abs(gridY_flat) <= a) &
+                    (np.abs(zNow - zCav) <= a)
+                )
+
+            elif cavityType == "cuboid":
+
+                ax = cavity_length / 2
+                ay = cavity_width  / 2
+                az = cavity_height / 2
+
+                #ax, ay, az = rCavity   # tuple (ax, ay, az)
+                mask = ~(
+                    (np.abs(gridX_flat) <= ax) &
+                    (np.abs(gridY_flat) <= ay) &
+                    (np.abs(zNow - zCav) <= az)
+                )
+            #tot hier
+            
+
+
 
             # apply mask to geometry and weights
             rVec = rVec[mask, :]
